@@ -1,0 +1,208 @@
+button{
+    cursor: pointer;
+}
+
+.refreshBtn{
+    border:none;
+    border-radius: 0.5rem;
+    padding: 0.7%;
+    /* font-weight: bold; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 90%; 
+}
+ 
+.main{
+    min-height: clac(100vh - 14rem);
+    /* display: flex; */
+    flex-direction: column;
+    align-items: center;
+    margin: 0.5rem;
+    padding: 2%;
+    /* margin-bottom: 2%; */
+    width: 100%;
+}
+ 
+.chats{
+    overflow: hidden;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+    width: 100%;
+    max-width: 70rem;
+    height: calc(100vh - 15rem);
+    font-size: 0.8em;
+}
+.chat-wrapper {
+    display: flex;
+    justify-content: flex-end;
+}
+.bot-wrapper {
+    display: flex;
+    justify-content: flex-start;
+}
+.chat{
+    margin: 0.5rem;
+    padding: 0.5rem 2rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: flex-start;
+    text-align: justify;
+    justify-content: flex-end;
+    border: 1px solid #ccc; /* Add border to user chat */
+    background-color: #73b7cf;
+    border-radius: 0.5rem; /* Add border-radius for rounded corners */
+    width: fit-content;
+    box-sizing: border-box;
+ 
+}
+.speakIcon{
+    width: 22;
+    height: 22;
+}
+.chatImg{
+    object-fit: cover;
+    width: 2rem;
+    margin-right: 1rem;
+    border-radius:0.5rem;
+}
+.txt{
+    margin-top: 0.4rem ;
+}
+ 
+.speaker{
+    object-fit: cover;
+    width: 2rem;
+    margin-right: 0.2rem;
+    margin-left: 0rem;
+    border-radius:0.5rem;
+}
+ 
+.speakerIconWhite {
+  filter: invert(100%);
+}
+ 
+.speakerIconBlack {
+  filter: invert(0%);
+}
+ 
+.imgSpeaker {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the items horizontally in the container */
+  justify-content: center; /* Center the items vertically in the container */
+  gap: 10px; /* Adjust the space between items */
+}
+ 
+.bot{
+    background: rgba(28, 30, 58, 1);
+    width: fit-content;
+    border-radius: 0.5rem;
+    color: white;
+    justify-content: flex-start;
+}
+ 
+.chatFooter{
+    margin-top: 1%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10rem;
+   
+}
+ 
+.inp{
+    padding: 0.5rem;
+    width:100%;
+    background: rgba(28, 30, 58, 1);
+    display: flex;
+    align-items: center;
+}
+ 
+.inp>textarea[type="text"]{
+    width:calc(100% - 3rem);
+    outline: none;
+    resize: none;
+    padding:0.5rem;
+    color: white;
+    overflow-y: hidden;
+    height: 30px;
+   
+}
+ 
+.inp>textarea,.send{
+    background: transparent;
+    color:white;
+    border: none;
+}
+.send>img{
+    filter: brightness(1.8);
+}
+.inp>.voice,.speaker{
+    background: transparent;
+    border: none;
+   
+}
+ 
+.custom-file-upload{
+    cursor: pointer;
+}
+ 
+.ExtractedFile{
+    background: #40a3c7;
+    border:none;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+.generatePPT{
+    background: #40a3c7;
+    border:none;
+    color: #fff;
+    width: 20%;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+ 
+ 
+.btn-danger{
+    border: none;
+    color: #fff;
+    padding: .5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0px 5px 5px #ccc;
+    background-color: #cf5353;
+}
+ 
+.file-content-wrapper {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+    gap: 1rem;
+}
+
+.download{
+    background: transparent;
+    border: none;
+    margin-left: 0.5rem;
+}
+
+.download-options{
+    position: absolute;
+    top: 4.5rem;
+    right: 4rem;
+    width:120px;
+    border-radius: 15px;
+    background-color: #fff;
+    border: 1px solid gray;
+}
+
+.footer{
+    background-color: #ccc;
+    width: 78%;
+    position: fixed;
+
+   
+}

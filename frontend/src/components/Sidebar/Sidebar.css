@@ -1,0 +1,110 @@
+.logo{
+    object-fit: cover;
+    width: 3rem;
+    margin-right: 2rem;
+    border-radius:0.5rem;
+}
+
+.upperPart{
+    padding: 2.5rem;
+    height: 50%;
+}
+
+.brand{
+    font-size: 2rem;
+}
+
+.upperPartTop{
+    display: flex;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+.addBtn{
+   height: 1.5rem;
+   padding-right: 0.5rem;
+}
+.sideBtn{
+    background: #40a3c7;
+    border: none;
+    color: white;
+    padding: 0.5rem;
+    font-size: 1.2rem;
+    width: 14rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    border-right: 2px solid white; 
+}
+
+.query{
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: transparent;
+    color: rgba(222,222,222,1);
+    padding: 0.5rem;
+    width: 14rem;
+    margin: 1rem auto;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(98,98,98,1);
+}
+
+.query>img{
+    margin-right: 0.5rem;
+    object-fit: cover;
+    height: 1.5rem;
+}
+
+.chervon{
+    margin-right: 0%;
+    margin-left: 5rem;
+}
+
+.dropdown-content {
+    position: absolute;
+    top: calc(100% + 0.5rem); /* Adjusted top position */
+    left: 50%; /* Center the dropdown horizontally */
+    transform: translateX(-50%);
+    z-index: 1;
+    width: 100%; /* Full width of parent */
+    background-color:rgb(184, 186, 187);
+    border: 1px solid rgba(98, 98, 98, 1);
+    border-top: none;
+    border-radius: 0 0 0.5rem 0.5rem;
+    /* justify-content: center; */
+}
+
+.dropdown-content>button{
+    align-content: center;
+    margin-left: 3rem;
+    border: none ;
+    background-color: transparent;
+    color: rgba(222,222,222,1);
+    padding: 0.5rem;
+}
+
+.subMenu>input{
+    align-content: center;
+    margin-left: 3rem;
+    border: none ;
+    background-color: transparent;
+    color: rgba(222,222,222,1);
+    padding: 0.5rem;
+}
+
+.focused {
+  /* outline: 2px solid blue; Example styling to indicate focus */
+  border-radius: 0.5rem;
+  background-color: rgb(74, 130, 147) !important;
+  
+}
+
+.nav-link.ppt {
+  background-color: #40a3c7; /* Change to your desired color */
+  color: #fff; /* Change to your desired color */
+  border-radius: 0.25rem; /* Add border radius for better UI */
+  /* Add any additional styling you want for the selected state */
+}

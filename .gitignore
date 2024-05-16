@@ -1,0 +1,43 @@
+# Ignore Visual Studio Code workspace settings
+.vscode/
+ 
+# Ignore backend environment files
+backend/azureenv/
+backend/generated_ppt/
+backend/__pycache__/
+ 
+# Ignore backend Python bytecode files
+backend/*.pyc
+ 
+# Ignore frontend node modules
+frontend/node_modules/
+ 
+# Ignore frontend build output
+frontend/build/
+ 
+# Ignore any local configuration specific to your environment
+config.py
+ 
+# Ignore Python virtual environment
+venv/
+ 
+# Ignore any generated PowerPoint files
+*.pptx
+ 
+# Ignore npm package lock file
+package-lock.json
+ 
+# Ignore any compiled JavaScript or TypeScript files
+*.js
+*.jsx
+*.ts
+*.tsx
+ 
+# Ignore any log files
+*.log
+ 
+# Ignore any backup files
+*~
+ 
+# Ignore any text files containing passwords or sensitive data
+*.txt
