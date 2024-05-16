@@ -27,11 +27,7 @@ venv/
 # Ignore npm package lock file
 package-lock.json
  
-# Ignore any compiled JavaScript or TypeScript files
-*.js
-*.jsx
-*.ts
-*.tsx
+
  
 # Ignore any log files
 *.log
