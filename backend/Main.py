@@ -15,6 +15,7 @@ import docx
 import pptx.presentation
 from pptx.util import Inches, Pt
 from pptx import Presentation
+import re
 import os
 
 import pptx.presentation
@@ -79,51 +80,139 @@ def extract_text_from_txt(txt_file):
     return txt_file.read().decode("utf-8")
 
 
-Title_Font_Size = Pt(30)
-Slide_Font_Size = Pt(16)
+# Title_Font_Size = Pt(30)
+# Slide_Font_Size = Pt(16)
 
 
-def generate_slide_title(topic):
-    prompt = f"Generate 5 slides title for the given topic '{topic}' "
+# def generate_slide_title(topic):
+#     prompt = f"Generate 5 slides title for the given topic '{topic}' "
+#     response = model.generate_content(prompt)
+#     return response.text.split("\n")
+
+
+# def generate_slide_content(slide_title):
+#     prompt = f"Generate content for the slide: '{slide_title}'"
+#     response = model.generate_content(prompt)
+#     return response.text
+
+def get_gemini_response(prompt):
+    model = genai.GenerativeModel('gemini-pro')
     response = model.generate_content(prompt)
-    return response.text.split("\n")
+    return response
+
+def refine_subtopics(sub_topics):
+    sub_titles = []
+    for sub_topic in sub_topics:
+        sub_titles.append(sub_topic[3:].replace('"',""))
+    return sub_titles
 
 
-def generate_slide_content(slide_title):
-    prompt = f"Generate content for the slide: '{slide_title}'"
-    response = model.generate_content(prompt)
-    return response.text
+def content_generation(sub_titles):
+    content =[]
+    for i in sub_titles:
+        prompt = f"Generate a content of {i} for presentation slide on the 2 bullet point only each of point 20 tokens"
+        model = genai.GenerativeModel('gemini-pro')
+        response = model.generate_content(prompt)
+        content.append(response.text)
+    return content
+
+def clean_text(text):
+    # Remove extra whitespaces and newlines
+    cleaned_text = re.sub('\s+', ' ', text).strip()
+
+    # Remove markdown-style bullet points, asterisks, and numeric bullet points
+    cleaned_text = re.sub(r'[*-]\s*|\d+\.\s*', '', cleaned_text)
+
+    # Remove extra spaces before and after colons
+    cleaned_text = re.sub(r'\s*:\s*', ': ', cleaned_text)
+
+    # Remove extra spaces before and after hyphens
+    cleaned_text = re.sub(r'\s*-\s*', ' - ', cleaned_text)
+
+    return cleaned_text
+
+def split_sentences(text):
+    # Split the text into sentences using regular expression
+    sentences = re.split(r'(?<=\.)\s+', text)
+
+    # Capitalize the first letter of each sentence
+    sentences = [sentence.capitalize() for sentence in sentences]
+
+    return sentences
+
+def replace_and_capitalize(text):
+    # Define a function to replace and capitalize the text between colons
+    def replace_and_capitalize_colon(match):
+        return match.group(1) + match.group(2).capitalize() + match.group(3)
+
+    # Use regular expression to find and replace text between colons
+    result = re.sub(r'(:\s*)(.*?)(\s*:[^:]|$)', replace_and_capitalize_colon, text)
+
+    return result
+
+
+
+def refine_final_content(content):
+    final_content=[]
+    for i in content:
+        cleaned_text = clean_text(i)
+        sentences = split_sentences(cleaned_text)
+        final_content.append(sentences)
+    print("final content ready....")
+    return final_content
+
+def slide_maker(powerpoint, topic,sub_titles, final_content):
+    title_slide_layout = powerpoint.slide_layouts[0]
+    title_slide = powerpoint.slides.add_slide(title_slide_layout)
+    title = title_slide.shapes.title
+    title.text = topic
+    title.text_frame.paragraphs[0].font.size = Pt(32)
+    title.text_frame.paragraphs[0].font.bold = True
+    content = title_slide.placeholders[1]
+    content.text = "Created By AI Gemini Model"
+    for i in range(len(sub_titles)):
+        bulletLayout = powerpoint.slide_layouts[1]
+        secondSlide = powerpoint.slides.add_slide(bulletLayout)
+        # accessing the attributes of shapes
+        myShapes = secondSlide.shapes
+        titleShape = myShapes.title
+        bodyShape = myShapes.placeholders[1]
+        titleShape.text = sub_titles[i]
+        titleShape.text_frame.paragraphs[0].font.size = Pt(24)
+        titleShape.text_frame.paragraphs[0].font.bold = True
+        tFrame = bodyShape.text_frame
+        print("Topic Generated")
+        for point in final_content[i]:
+            point = re.sub(r':[^:]+:', ':', point)
+            point = replace_and_capitalize(point)
+            p = tFrame.add_paragraph()
+            p.text = point
+            p.font.size = Pt(18)
+            p.space_after = Pt(10)
+    return powerpoint
 
 
 @app.post("/ppt")
 async def create_presentation(topic: str = Form(None)):
     try:
-        slide_titles = generate_slide_title(topic)
-        filtered_slide_titles = [item for item in slide_titles if item.strip() != ""]
-        slide_contents = [
-            generate_slide_content(title) for title in filtered_slide_titles
-        ]
-
-        prs = Presentation()
-        slide_layout = prs.slide_layouts[0]
-        title_slide = prs.slides.add_slide(prs.slide_layouts[0])
-        title_slide.shapes.title.text = topic
-
-        for slide_title, slide_content in zip(slide_titles, slide_contents):
-            slide = prs.slides.add_slide(slide_layout)
-            slide.shapes.title.text = slide_title
-            slide.shapes.placeholders[1].text = slide_content
-
-            slide.shapes.title.text_frame.paragraphs[0].font_size = Title_Font_Size
-            for shape in slide.shapes:
-                if shape.has_text_frame:
-                    text_frame = shape.text_frame
-                    for paragraph in text_frame.paragraphs:
-                        paragraph.font_size = Slide_Font_Size
+        prompt =f"Generate a 5 sub-titles only  on the topic of {topic}"
+        response = get_gemini_response(prompt)
+        print("Topic Generated")
+        sub_topics = response.text.split("\n")
+        sub_titles = refine_subtopics(sub_topics)
+        print("Sub Titles")
+        content = content_generation(sub_titles)
+        print("content Generated")
+        final_content = refine_final_content(content)
+        print("final content ready")
+        powerpoint = Presentation()
+        powerpoint = slide_maker(powerpoint,topic, sub_titles, final_content)
+        print("presenatation ready:")
 
         # Save the presentation to a BytesIO object
         presentation_bytes = io.BytesIO()
-        prs.save(presentation_bytes)
+        powerpoint.save(presentation_bytes)
+        print("presenatation ready:")
         presentation_bytes.seek(0)  # Reset the BytesIO position to the beginning
 
         # Return the presentation file as a streaming response
