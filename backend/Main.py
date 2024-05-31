@@ -15,6 +15,7 @@ import docx
 import pptx.presentation
 from pptx.util import Inches, Pt
 from pptx import Presentation
+from docx import Document
 import re
 import os
 
@@ -191,6 +192,18 @@ def slide_maker(powerpoint, topic,sub_titles, final_content):
             p.space_after = Pt(10)
     return powerpoint
 
+@app.post("/doc")
+async def create_word_document(topic):
+    prompt = f"Write a brief introduction in about 5 bullet points on {topic}"
+    response = get_gemini_response(prompt)
+    print("content Generated")
+    print(response.text)
+    doc = Document()
+    doc.add_heading('Generated Content', 0)
+    doc.add_paragraph(response.text)
+    output_path = f"generated_doc/{topic}_document.docx"
+    doc.save(output_path)
+    return {"file_path":output_path}
 
 @app.post("/ppt")
 async def create_presentation(topic: str = Form(None)):
