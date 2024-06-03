@@ -96,50 +96,55 @@ def extract_text_from_txt(txt_file):
 #     response = model.generate_content(prompt)
 #     return response.text
 
+
 def get_gemini_response(prompt):
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel("gemini-pro")
     response = model.generate_content(prompt)
     return response
+
 
 def refine_subtopics(sub_topics):
     sub_titles = []
     for sub_topic in sub_topics:
-        sub_titles.append(sub_topic[3:].replace('"',""))
+        sub_titles.append(sub_topic[3:].replace('"', ""))
     return sub_titles
 
 
 def content_generation(sub_titles):
-    content =[]
+    content = []
     for i in sub_titles:
         prompt = f"Generate a content of {i} for presentation slide on the 2 bullet point only each of point 20 tokens"
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel("gemini-pro")
         response = model.generate_content(prompt)
         content.append(response.text)
     return content
 
+
 def clean_text(text):
     # Remove extra whitespaces and newlines
-    cleaned_text = re.sub('\s+', ' ', text).strip()
+    cleaned_text = re.sub("\s+", " ", text).strip()
 
     # Remove markdown-style bullet points, asterisks, and numeric bullet points
-    cleaned_text = re.sub(r'[*-]\s*|\d+\.\s*', '', cleaned_text)
+    cleaned_text = re.sub(r"[*-]\s*|\d+\.\s*", "", cleaned_text)
 
     # Remove extra spaces before and after colons
-    cleaned_text = re.sub(r'\s*:\s*', ': ', cleaned_text)
+    cleaned_text = re.sub(r"\s*:\s*", ": ", cleaned_text)
 
     # Remove extra spaces before and after hyphens
-    cleaned_text = re.sub(r'\s*-\s*', ' - ', cleaned_text)
+    cleaned_text = re.sub(r"\s*-\s*", " - ", cleaned_text)
 
     return cleaned_text
 
+
 def split_sentences(text):
     # Split the text into sentences using regular expression
-    sentences = re.split(r'(?<=\.)\s+', text)
+    sentences = re.split(r"(?<=\.)\s+", text)
 
     # Capitalize the first letter of each sentence
     sentences = [sentence.capitalize() for sentence in sentences]
 
     return sentences
+
 
 def replace_and_capitalize(text):
     # Define a function to replace and capitalize the text between colons
@@ -147,14 +152,13 @@ def replace_and_capitalize(text):
         return match.group(1) + match.group(2).capitalize() + match.group(3)
 
     # Use regular expression to find and replace text between colons
-    result = re.sub(r'(:\s*)(.*?)(\s*:[^:]|$)', replace_and_capitalize_colon, text)
+    result = re.sub(r"(:\s*)(.*?)(\s*:[^:]|$)", replace_and_capitalize_colon, text)
 
     return result
 
 
-
 def refine_final_content(content):
-    final_content=[]
+    final_content = []
     for i in content:
         cleaned_text = clean_text(i)
         sentences = split_sentences(cleaned_text)
@@ -162,7 +166,8 @@ def refine_final_content(content):
     print("final content ready....")
     return final_content
 
-def slide_maker(powerpoint, topic,sub_titles, final_content):
+
+def slide_maker(powerpoint, topic, sub_titles, final_content):
     title_slide_layout = powerpoint.slide_layouts[0]
     title_slide = powerpoint.slides.add_slide(title_slide_layout)
     title = title_slide.shapes.title
@@ -184,7 +189,7 @@ def slide_maker(powerpoint, topic,sub_titles, final_content):
         tFrame = bodyShape.text_frame
         print("Topic Generated")
         for point in final_content[i]:
-            point = re.sub(r':[^:]+:', ':', point)
+            point = re.sub(r":[^:]+:", ":", point)
             point = replace_and_capitalize(point)
             p = tFrame.add_paragraph()
             p.text = point
@@ -192,23 +197,39 @@ def slide_maker(powerpoint, topic,sub_titles, final_content):
             p.space_after = Pt(10)
     return powerpoint
 
+
 @app.post("/doc")
-async def create_word_document(topic):
+async def create_word_document(topic: str = Form(None)):
     prompt = f"Write a brief introduction in about 5 bullet points on {topic}"
     response = get_gemini_response(prompt)
     print("content Generated")
     print(response.text)
     doc = Document()
-    doc.add_heading('Generated Content', 0)
+    doc.add_heading("Generated Content", 0)
     doc.add_paragraph(response.text)
-    output_path = f"generated_doc/{topic}_document.docx"
-    doc.save(output_path)
-    return {"file_path":output_path}
+
+    # Save the document to a BytesIO object
+    doc_bytes = io.BytesIO()
+    doc.save(doc_bytes)
+    doc_bytes.seek(0)  # Reset the BytesIO position to the beginning
+
+    # Return the document file as a streaming response
+    file_name = f"{topic}_document.docx"
+    return StreamingResponse(
+        iter([doc_bytes.getvalue()]),
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f"attachment; filename={file_name}"},
+    )
+
+    # output_path = f"generated_doc/{topic}_document.docx"
+    # doc.save(output_path)
+    # return {"file_path": output_path}
+
 
 @app.post("/ppt")
 async def create_presentation(topic: str = Form(None)):
     try:
-        prompt =f"Generate a 5 sub-titles only  on the topic of {topic}"
+        prompt = f"Generate a 5 sub-titles only  on the topic of {topic}"
         response = get_gemini_response(prompt)
         print("Topic Generated")
         sub_topics = response.text.split("\n")
@@ -219,7 +240,7 @@ async def create_presentation(topic: str = Form(None)):
         final_content = refine_final_content(content)
         print("final content ready")
         powerpoint = Presentation()
-        powerpoint = slide_maker(powerpoint,topic, sub_titles, final_content)
+        powerpoint = slide_maker(powerpoint, topic, sub_titles, final_content)
         print("presenatation ready:")
 
         # Save the presentation to a BytesIO object
