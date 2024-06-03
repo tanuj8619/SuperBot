@@ -108,3 +108,10 @@
   border-radius: 0.25rem; /* Add border radius for better UI */
   /* Add any additional styling you want for the selected state */
 }
+
+.nav-link.doc {
+  background-color: #40a3c7; /* Change to your desired color */
+  color: #fff; /* Change to your desired color */
+  border-radius: 0.25rem; /* Add border radius for better UI */
+  /* Add any additional styling you want for the selected state */
+}

@@ -17,7 +17,7 @@ import voiceOff from "../../assets/mic.svg";
 import stopIcon from "../../assets/volume-up-fill.svg";
 import speakIcon from "../../assets/volume-off-fill.svg";
 
-const Main = ({ speakerEnabled, gemini, showGeneratePPT }) => {
+const Main = ({ speakerEnabled, gemini, showGeneratePPT, showGenerateDoc }) => {
   const [userInput, setUserInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
     {
@@ -35,6 +35,10 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT }) => {
   //for ppt
   const [loading, setLoading] = useState(false);
   const [presentationPath, setPresentationPath] = useState("");
+
+  //doc
+  const [docLoading, setDocLoading] = useState(false);
+  const [docPath, setDocPath] = useState("");
 
   //for voice
   const [listening, setListening] = useState(false);
@@ -227,6 +231,52 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT }) => {
     setLoading(false);
   };
 
+  const handleGenerateDoc = async () => {
+    setDocLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("topic", userInput);
+      const response = await axios.post("http://127.0.0.1:8000/doc", formData, {
+        headers: {
+          Accept: "application/json",
+        },
+        responseType: "blob",
+      });
+
+      // Create a blob URL for the response data
+      const blob = new Blob([response.data]);
+      const downloadLink = URL.createObjectURL(blob);
+
+      // Create a temporary link element to trigger the download
+      const a = document.createElement("a");
+      a.href = downloadLink;
+      a.download = `${userInput}_document.docx`; // Set the file name
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a); // Remove the temporary link element
+
+      //const downloadLink = encodeURIComponent(response.data.file_path);
+      setChatHistory((prevChatHistory) => [
+        ...prevChatHistory,
+        { role: "user", content: userInput },
+        {
+          role: "assistant",
+          content: (
+            <div>
+              <p>{userInput} Document generated!</p>
+            </div>
+          ),
+        },
+      ]);
+      setDocPath(response.data.file_path);
+      setUserInput("");
+      resetTranscript(null);
+    } catch (error) {
+      console.error("Error generating documentation:", error);
+    }
+    setDocLoading(false);
+  };
+
   const sendMessage = async () => {
     console.log(gemini);
     try {
@@ -381,7 +431,7 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT }) => {
                 {/* Add download button for each response */}
                 {message.role === "assistant" &&
                   i !== 0 &&
-                  !showGeneratePPT &&(
+                  !showGeneratePPT && (
                     <div className="dropdown">
                       <button
                         className="dropdown-toggle"
@@ -457,12 +507,23 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT }) => {
               </button>
             )}
 
-            {!showGeneratePPT && (
+            {showGenerateDoc && (
+              <button
+                className="generatePPT"
+                onClick={handleGenerateDoc}
+                disabled={!userInput}
+              >
+                {docLoading ? "Generating..." : "Generate Document"}
+                {/* Generate PPT */}
+              </button>
+            )}
+
+            {!showGeneratePPT && !showGenerateDoc && (
               <label htmlFor="file-upload" className="custom-file-upload">
                 <img src={attachBtn} alt="Attach" onClick={handleAttach} />
               </label>
             )}
-            {!showGeneratePPT && (
+            {!showGeneratePPT && !showGenerateDoc && (
               <button
                 className="send"
                 onClick={sendMessage}

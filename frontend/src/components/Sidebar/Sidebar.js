@@ -4,9 +4,16 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import gptLogo from "../../assets/cglogo.png";
 import "./Sidebar.css";
 
-function Sidebar({ speakerEnabled, toggleSpeakerSetting, setGemini, setShowGeneratePPT }) {
+function Sidebar({
+  speakerEnabled,
+  toggleSpeakerSetting,
+  setGemini,
+  setShowGeneratePPT,
+  setShowGenerateDoc,
+}) {
   const [focusedButton, setFocusedButton] = useState("OpenAI");
   const [isGeneratePPTSelected, setIsGeneratePPTSelected] = useState(false);
+  const [isGenerateDocSelected, setIsGenerateDocSelected] = useState(false);
 
   const handleSpeakerToggle = (event) => {
     event.stopPropagation();
@@ -29,6 +36,16 @@ function Sidebar({ speakerEnabled, toggleSpeakerSetting, setGemini, setShowGener
     setIsGeneratePPTSelected(!isGeneratePPTSelected);
     setShowGeneratePPT(!isGeneratePPTSelected); // Toggle showGeneratePPT state in the parent component
     console.log(isGeneratePPTSelected);
+    setIsGenerateDocSelected(false);
+    setShowGenerateDoc(false);
+  };
+
+  const handleGenerateDocClick = () => {
+    setIsGenerateDocSelected(!isGenerateDocSelected);
+    setShowGenerateDoc(!isGenerateDocSelected); // Toggle showGeneratePPT state in the parent component
+    console.log(isGenerateDocSelected);
+    setIsGeneratePPTSelected(false);
+    setShowGeneratePPT(false);
   };
 
   return (
@@ -50,7 +67,7 @@ function Sidebar({ speakerEnabled, toggleSpeakerSetting, setGemini, setShowGener
                 <li className="nav-item my-1 py-2 py-sm-0">
                   {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                   <a
-                    href="#submenu"
+                    href="#submenuAI"
                     className="nav-link text-white text-center text-sm-start"
                     data-bs-toggle="collapse"
                     aria-current="page"
@@ -61,8 +78,8 @@ function Sidebar({ speakerEnabled, toggleSpeakerSetting, setGemini, setShowGener
                   </a>
                   <ul
                     className="nav collapse ms-2 flex-column"
-                    id="submenu"
-                    data-bs-parent="#parentM"
+                    id="submenuAI"
+                    data-bs-parent="#parentAI"
                   >
                     <li className="nav-item ">
                       <label className="nav-link text-white ">
@@ -93,25 +110,67 @@ function Sidebar({ speakerEnabled, toggleSpeakerSetting, setGemini, setShowGener
                     </li>
                   </ul>
                 </li>
+
                 <li className="nav-item my-1 py-2 py-sm-0">
                   {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                   <a
-                    href="#"
-                    className={`nav-link text-white text-center text-sm-start ${
-                      isGeneratePPTSelected ? "ppt" : ""
-                    }`}
+                    href="#submenuFiles"
+                    className="nav-link text-white text-center text-sm-start"
+                    data-bs-toggle="collapse"
                     aria-current="page"
-                    onClick={handleGeneratePPTClick}
                   >
                     <i className="bi bi-files"></i>
-                    <span
-                      className="ms-2 d-none d-sm-inline"
-                      style={{ marginRight: "2rem" }}
-                    >
-                      Generate PPT
+                    <span className="ms-2 d-none d-sm-inline">
+                      Generate Files
                     </span>
+                    <i className="bi bi-arrow-down-short ms-3"></i>
                   </a>
+                  <ul
+                    className="nav collapse ms-2 flex-column"
+                    id="submenuFiles"
+                    data-bs-parent="#parentFiles"
+                  >
+                    <li className="nav-item my-1 py-2 py-sm-0">
+                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                      <a
+                        href="#"
+                        className={`nav-link text-white text-center text-sm-start ${
+                          isGeneratePPTSelected ? "ppt" : ""
+                        }`}
+                        aria-current="page"
+                        onClick={handleGeneratePPTClick}
+                      >
+                        <i className="bi bi-file-ppt"></i>
+                        <span
+                          className="ms-2 d-none d-sm-inline"
+                          style={{ marginRight: "2rem" }}
+                        >
+                          PPT
+                        </span>
+                      </a>
+                    </li>
+                    <li className="nav-item my-1 py-2 py-sm-0">
+                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                      <a
+                        href="#"
+                        className={`nav-link text-white text-center text-sm-start ${
+                          isGenerateDocSelected ? "doc" : ""
+                        }`}
+                        aria-current="page"
+                        onClick={handleGenerateDocClick}
+                      >
+                        <i className="bi bi-file-word"></i>
+                        <span
+                          className="ms-2 d-none d-sm-inline"
+                          style={{ marginRight: "2rem" }}
+                        >
+                          Word doc
+                        </span>
+                      </a>
+                    </li>
+                  </ul>
                 </li>
+
                 <li className="nav-item my-1 py-2 py-sm-0">
                   {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                   <a
