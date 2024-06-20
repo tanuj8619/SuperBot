@@ -10,10 +10,12 @@ function Sidebar({
   setGemini,
   setShowGeneratePPT,
   setShowGenerateDoc,
+  setShowGenerateCsv,
 }) {
   const [focusedButton, setFocusedButton] = useState("OpenAI");
   const [isGeneratePPTSelected, setIsGeneratePPTSelected] = useState(false);
   const [isGenerateDocSelected, setIsGenerateDocSelected] = useState(false);
+  const [isGenerateCsvSelected, setIsGenerateCsvSelected] = useState(false);
 
   const handleSpeakerToggle = (event) => {
     event.stopPropagation();
@@ -38,6 +40,8 @@ function Sidebar({
     console.log(isGeneratePPTSelected);
     setIsGenerateDocSelected(false);
     setShowGenerateDoc(false);
+    setIsGenerateCsvSelected(false);
+    setShowGenerateCsv(false);
   };
 
   const handleGenerateDocClick = () => {
@@ -46,7 +50,19 @@ function Sidebar({
     console.log(isGenerateDocSelected);
     setIsGeneratePPTSelected(false);
     setShowGeneratePPT(false);
+    setIsGenerateCsvSelected(false);
+    setShowGenerateCsv(false);
   };
+
+  const handleGenerateCsvClick = () => {
+    setIsGenerateCsvSelected(!isGenerateCsvSelected);
+    setShowGenerateCsv(!isGenerateCsvSelected);
+    console.log(isGenerateCsvSelected);
+    setIsGenerateDocSelected(false);
+    setShowGenerateDoc(false);
+    setIsGeneratePPTSelected(false);
+    setShowGeneratePPT(false);
+  }
 
   return (
     <div>
@@ -165,6 +181,25 @@ function Sidebar({
                           style={{ marginRight: "2rem" }}
                         >
                           Word doc
+                        </span>
+                      </a>
+                    </li>
+                    <li className="nav-item my-1 py-2 py-sm-0">
+                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                      <a
+                        href="#"
+                        className={`nav-link text-white text-center text-sm-start ${
+                          isGenerateCsvSelected ? "csv" : ""
+                        }`}
+                        aria-current="page"
+                        onClick={handleGenerateCsvClick}
+                      >
+                        <i class="bi bi-filetype-csv"></i>
+                        <span
+                          className="ms-2 d-none d-sm-inline"
+                          style={{ marginRight: "2rem" }}
+                        >
+                          CSV File
                         </span>
                       </a>
                     </li>

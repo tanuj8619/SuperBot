@@ -1,5 +1,6 @@
 import base64
-from io import BytesIO
+import csv
+from io import BytesIO, StringIO
 import io
 from typing import Optional
 from fastapi import FastAPI, Form, HTTPException, Query, UploadFile, File
@@ -36,14 +37,11 @@ genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel("gemini-pro")
 chats = model.start_chat(history=[])
 
-
 class UserInput(BaseModel):
     user_input: str
 
-
 class Gemini(BaseModel):
     gemini: bool
-
 
 class ConversationContext:
     def __init__(self):
@@ -198,14 +196,35 @@ def slide_maker(powerpoint, topic, sub_titles, final_content):
     return powerpoint
 
 
+def generate_csv_content(prompt):
+    # Generate structured content based on the prompt
+    model = genai.GenerativeModel("gemini-pro")
+    response = model.generate_content(prompt)
+    print(response)
+    # Assuming the generated response contains rows of data
+    csv_data = response.text.strip().split("\n")
+    if len(csv_data) == 0:
+        raise ValueError("No data generated")
+
+    headers = csv_data[0].split(",")  # Assume the first line contains headers
+    rows = [row.split(",") for row in csv_data[1:]]  # Remaining lines are data rows
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(headers)
+    writer.writerows(rows)
+
+    return output.getvalue()
+
+
 @app.post("/doc")
 async def create_word_document(topic: str = Form(None)):
-    prompt = f"Write a brief introduction in about 5 bullet points on {topic}"
+    prompt = f"Generate a document on {topic} which should be approximately 2 pages long"
     response = get_gemini_response(prompt)
     print("content Generated")
     print(response.text)
     doc = Document()
-    doc.add_heading("Generated Content", 0)
+    doc.add_heading(topic, 0)
     doc.add_paragraph(response.text)
 
     # Save the document to a BytesIO object
@@ -224,6 +243,28 @@ async def create_word_document(topic: str = Form(None)):
     # output_path = f"generated_doc/{topic}_document.docx"
     # doc.save(output_path)
     # return {"file_path": output_path}
+
+
+@app.post("/csv")
+async def generate_csv(topic: str = Form(None)):
+    try:
+        if not topic:
+            raise HTTPException(status_code=400, detail="User input is required")
+
+        prompt = f"Generate data relevant to the: {topic}"
+        csv_content = generate_csv_content(prompt)
+        csv_bytes = BytesIO(csv_content.encode("utf-8"))
+        csv_bytes.seek(0)
+
+        file_name = "generated_file.csv"
+        return StreamingResponse(
+            iter([csv_bytes.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={file_name}"},
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating CSV: {str(e)}")
 
 
 @app.post("/ppt")

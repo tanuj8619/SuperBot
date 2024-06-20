@@ -10,6 +10,7 @@ function App() {
   const [gemini, setGemini] = useState(false);
   const [showGeneratePPT, setShowGeneratePPT] = useState(false);
   const [showGenerateDoc, setShowGenerateDoc] = useState(false);
+  const [showGenerateCsv, setShowGenerateCsv] = useState(false);
 
   // Function to toggle the speaker setting
   const toggleSpeakerSetting = () => {
@@ -28,6 +29,7 @@ function App() {
           toggleSpeakerSetting={toggleSpeakerSetting}
           setShowGeneratePPT={setShowGeneratePPT}
           setShowGenerateDoc={setShowGenerateDoc}
+          setShowGenerateCsv={setShowGenerateCsv}
         />
       </div>
       <div className="main">
@@ -36,6 +38,7 @@ function App() {
           gemini={gemini}
           showGeneratePPT={showGeneratePPT}
           showGenerateDoc={showGenerateDoc}
+          showGenerateCsv={showGenerateCsv}
         />
       </div>
     </div>
