@@ -1,12 +1,19 @@
-import base64
+import base64  # For encoding and decoding base64 strings (used for audio data).
 import csv
-from io import BytesIO, StringIO
+from io import BytesIO, StringIO  # For handling in-memory binary and text streams.
 import io
 from typing import Optional
-from fastapi import FastAPI, Form, HTTPException, Query, UploadFile, File
+from fastapi import (
+    FastAPI,
+    Form,
+    HTTPException,
+    Query,
+    UploadFile,
+    File,
+)  # Main FastAPI class to create the app.
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel  # For defining data models.
 from openai import AzureOpenAI
 from gtts import gTTS
 import google.generativeai as genai
@@ -17,13 +24,10 @@ import pptx.presentation
 from pptx.util import Inches, Pt
 from pptx import Presentation
 from docx import Document
-import re
-import os
+import re  # For regular expression operations.
+import os  # For interacting with the operating system.
 
-import pptx.presentation
-from pptx.util import Inches, Pt
-
-app = FastAPI()
+app = FastAPI()  # instance of the FastAPI class to set up the web application.
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,13 +39,18 @@ app.add_middleware(
 
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel("gemini-pro")
-chats = model.start_chat(history=[])
+chats = model.start_chat(
+    history=[]
+)  # Initializes a chat session with an empty history.
+
 
 class UserInput(BaseModel):
     user_input: str
 
+
 class Gemini(BaseModel):
     gemini: bool
+
 
 class ConversationContext:
     def __init__(self):
@@ -101,7 +110,7 @@ def get_gemini_response(prompt):
     return response
 
 
-def refine_subtopics(sub_topics):
+def refine_subtopics(sub_topics):  # removing the first 3 characters and quotes
     sub_titles = []
     for sub_topic in sub_topics:
         sub_titles.append(sub_topic[3:].replace('"', ""))
@@ -116,6 +125,16 @@ def content_generation(sub_titles):
         response = model.generate_content(prompt)
         content.append(response.text)
     return content
+
+
+def refine_final_content(content):
+    final_content = []
+    for i in content:
+        cleaned_text = clean_text(i)
+        sentences = split_sentences(cleaned_text)
+        final_content.append(sentences)
+    print("final content ready....")
+    return final_content
 
 
 def clean_text(text):
@@ -155,16 +174,6 @@ def replace_and_capitalize(text):
     return result
 
 
-def refine_final_content(content):
-    final_content = []
-    for i in content:
-        cleaned_text = clean_text(i)
-        sentences = split_sentences(cleaned_text)
-        final_content.append(sentences)
-    print("final content ready....")
-    return final_content
-
-
 def slide_maker(powerpoint, topic, sub_titles, final_content):
     title_slide_layout = powerpoint.slide_layouts[0]
     title_slide = powerpoint.slides.add_slide(title_slide_layout)
@@ -173,7 +182,7 @@ def slide_maker(powerpoint, topic, sub_titles, final_content):
     title.text_frame.paragraphs[0].font.size = Pt(32)
     title.text_frame.paragraphs[0].font.bold = True
     content = title_slide.placeholders[1]
-    content.text = "Created By AI Gemini Model"
+    content.text = "Created By AI Model"
     for i in range(len(sub_titles)):
         bulletLayout = powerpoint.slide_layouts[1]
         secondSlide = powerpoint.slides.add_slide(bulletLayout)
@@ -201,8 +210,13 @@ def generate_csv_content(prompt):
     model = genai.GenerativeModel("gemini-pro")
     response = model.generate_content(prompt)
     print(response)
+
+    # Replace asterisks with empty string in the generated response
+    text_content = response.text.replace("*", "")
+
     # Assuming the generated response contains rows of data
-    csv_data = response.text.strip().split("\n")
+    csv_data = text_content.strip().split("\n")
+
     if len(csv_data) == 0:
         raise ValueError("No data generated")
 
@@ -217,15 +231,29 @@ def generate_csv_content(prompt):
     return output.getvalue()
 
 
+# Function to remove asterisks around text
+def remove_asterisks(text):
+    # Remove asterisks at the beginning and end of each line, considering Markdown
+    lines = text.splitlines()
+    cleaned_lines = []
+    for line in lines:
+        line = re.sub(r"^\s*[#\*]+\s*", "", line)  # Remove asterisks at the beginning
+        line = re.sub(r"\s*[#\*]+\s*$", "", line)  # Remove asterisks at the end
+        line = re.sub(r"\*\*(.*?)\*\*", r"\1", line)
+        cleaned_lines.append(line.strip())
+    return "\n".join(cleaned_lines)
+
+
 @app.post("/doc")
 async def create_word_document(topic: str = Form(None)):
-    prompt = f"Generate a document on {topic} which should be approximately 2 pages long"
+    prompt = f"{topic} "
+
     response = get_gemini_response(prompt)
     print("content Generated")
     print(response.text)
     doc = Document()
-    doc.add_heading(topic, 0)
-    doc.add_paragraph(response.text)
+    doc.add_heading(remove_asterisks(topic), 0)
+    doc.add_paragraph(remove_asterisks(response.text))
 
     # Save the document to a BytesIO object
     doc_bytes = io.BytesIO()
@@ -284,7 +312,7 @@ async def create_presentation(topic: str = Form(None)):
         powerpoint = slide_maker(powerpoint, topic, sub_titles, final_content)
         print("presenatation ready:")
 
-        # Save the presentation to a BytesIO object
+        # Save the presentation to a BytesIO(buffer) object
         presentation_bytes = io.BytesIO()
         powerpoint.save(presentation_bytes)
         print("presenatation ready:")
@@ -292,10 +320,13 @@ async def create_presentation(topic: str = Form(None)):
 
         # Return the presentation file as a streaming response
         file_name = f"{topic}_presentation.pptx"
+        # StreamingResponse used in web frameworks (like FastAPI) to stream large files to the client without loading the entire file into memory at once.
         return StreamingResponse(
             iter([presentation_bytes.getvalue()]),
-            media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            headers={"Content-Disposition": f"attachment; filename={file_name}"},
+            media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",  # Sets the MIME type of the response to the appropriate type for a PowerPoint file .pptx
+            headers={
+                "Content-Disposition": f"attachment; filename={file_name}"
+            },  # This header tells the browser to download the file and use the provided filename.
         )
     except Exception as e:
         raise HTTPException(
