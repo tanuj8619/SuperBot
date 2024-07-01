@@ -11,11 +11,13 @@ function Sidebar({
   setShowGeneratePPT,
   setShowGenerateDoc,
   setShowGenerateCsv,
+  setShowGeneratePdf,
 }) {
   const [focusedButton, setFocusedButton] = useState("OpenAI");
   const [isGeneratePPTSelected, setIsGeneratePPTSelected] = useState(false);
   const [isGenerateDocSelected, setIsGenerateDocSelected] = useState(false);
   const [isGenerateCsvSelected, setIsGenerateCsvSelected] = useState(false);
+  const [isGeneratePdfSelected, setIsGeneratePdfSelected] = useState(false);
 
   const handleSpeakerToggle = (event) => {
     event.stopPropagation();
@@ -42,6 +44,8 @@ function Sidebar({
     setShowGenerateDoc(false);
     setIsGenerateCsvSelected(false);
     setShowGenerateCsv(false);
+    setIsGeneratePdfSelected(false);
+    setShowGeneratePdf(false);
   };
 
   const handleGenerateDocClick = () => {
@@ -52,6 +56,8 @@ function Sidebar({
     setShowGeneratePPT(false);
     setIsGenerateCsvSelected(false);
     setShowGenerateCsv(false);
+    setIsGeneratePdfSelected(false);
+    setShowGeneratePdf(false);
   };
 
   const handleGenerateCsvClick = () => {
@@ -62,7 +68,21 @@ function Sidebar({
     setShowGenerateDoc(false);
     setIsGeneratePPTSelected(false);
     setShowGeneratePPT(false);
-  }
+    setIsGeneratePdfSelected(false);
+    setShowGeneratePdf(false);
+  };
+
+  const handleGeneratePdfClick = () => {
+    setIsGeneratePdfSelected(!isGenerateCsvSelected);
+    setShowGeneratePdf(!isGenerateCsvSelected);
+    console.log(isGenerateCsvSelected);
+    setIsGenerateDocSelected(false);
+    setShowGenerateDoc(false);
+    setIsGeneratePPTSelected(false);
+    setShowGeneratePPT(false);
+    setIsGenerateCsvSelected(false);
+    setShowGenerateCsv(false);
+  };
 
   return (
     <div>
@@ -200,6 +220,25 @@ function Sidebar({
                           style={{ marginRight: "2rem" }}
                         >
                           CSV File
+                        </span>
+                      </a>
+                    </li>
+                    <li className="nav-item my-1 py-2 py-sm-0">
+                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                      <a
+                        href="#"
+                        className={`nav-link text-white text-center text-sm-start ${
+                          isGeneratePdfSelected ? "pdf" : ""
+                        }`}
+                        aria-current="page"
+                        onClick={handleGeneratePdfClick}
+                      >
+                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                        <span
+                          className="ms-2 d-none d-sm-inline"
+                          style={{ marginRight: "2rem" }}
+                        >
+                          Pdf
                         </span>
                       </a>
                     </li>

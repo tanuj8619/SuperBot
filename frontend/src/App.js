@@ -11,6 +11,7 @@ function App() {
   const [showGeneratePPT, setShowGeneratePPT] = useState(false);
   const [showGenerateDoc, setShowGenerateDoc] = useState(false);
   const [showGenerateCsv, setShowGenerateCsv] = useState(false);
+  const [showGeneratePdf, setShowGeneratePdf] = useState(false);
 
   // Function to toggle the speaker setting
   const toggleSpeakerSetting = () => {
@@ -30,6 +31,7 @@ function App() {
           setShowGeneratePPT={setShowGeneratePPT}
           setShowGenerateDoc={setShowGenerateDoc}
           setShowGenerateCsv={setShowGenerateCsv}
+          setShowGeneratePdf={setShowGeneratePdf}
         />
       </div>
       <div className="main">
@@ -39,6 +41,7 @@ function App() {
           showGeneratePPT={showGeneratePPT}
           showGenerateDoc={showGenerateDoc}
           showGenerateCsv={showGenerateCsv}
+          showGeneratePdf={showGeneratePdf}
         />
       </div>
     </div>

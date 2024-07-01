@@ -17,7 +17,13 @@ import voiceOff from "../../assets/mic.svg";
 import stopIcon from "../../assets/volume-up-fill.svg";
 import speakIcon from "../../assets/volume-off-fill.svg";
 
-const Main = ({ speakerEnabled, gemini, showGeneratePPT, showGenerateDoc, showGenerateCsv }) => {
+const Main = ({
+  speakerEnabled,
+  gemini,
+  showGeneratePPT,
+  showGenerateDoc,
+  showGenerateCsv,
+}) => {
   const [userInput, setUserInput] = useState("");
   const [chatHistory, setChatHistory] = useState([
     {
@@ -25,6 +31,13 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT, showGenerateDoc, showGe
       content: "Hi, I am Capgemini SuperBot. How can I help you today?",
     },
   ]);
+
+  //for search
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredChatHistory, setFilteredChatHistory] = useState(chatHistory);
+  const [searchFilter, setSearchFilter] = useState("all");
+  const [searchDate, setSearchDate] = useState("");
+
   //for file
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
@@ -40,7 +53,7 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT, showGenerateDoc, showGe
   const [docLoading, setDocLoading] = useState(false);
   const [docPath, setDocPath] = useState("");
 
-  //csv 
+  //csv
   const [csvLoading, setCsvLoading] = useState(false);
 
   //for voice
@@ -57,6 +70,42 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT, showGenerateDoc, showGe
   const [modalOpen, setModalOpen] = useState(false);
   const handleModalClick = () => {
     setModalOpen(false);
+  };
+
+  //search functions
+  const handleSearch = (event) => {
+    const query = event.target.value.toLowerCase();
+    setSearchQuery(query);
+    filterChatHistory(query, searchFilter, searchDate);
+  };
+
+  const handleFilterChange = (event) => {
+    const filter = event.target.value;
+    setSearchFilter(filter);
+    filterChatHistory(searchQuery, filter, searchDate);
+  };
+
+  const handleDateChange = (event) => {
+    const date = event.target.value;
+    setSearchDate(date);
+    filterChatHistory(searchQuery, searchFilter, date);
+  };
+
+  const filterChatHistory = (query, filter, date) => {
+    const filtered = chatHistory.filter((message) => {
+      const matchesQuery = message.content.toLowerCase().includes(query);
+      const matchesFilter =
+        filter === "all" ||
+        (filter === "messages" && message.role !== "assistant") ||
+        (filter === "documents" &&
+          message.role === "assistant" &&
+          message.file);
+      const matchesDate =
+        !date ||
+        new Date(message.date).toDateString() === new Date(date).toDateString();
+      return matchesQuery && matchesFilter && matchesDate;
+    });
+    setFilteredChatHistory(filtered);
   };
 
   const [audioSrc, setAudioSrc] = useState(null);
@@ -188,6 +237,12 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT, showGenerateDoc, showGe
     }
   };
 
+  function getLimitedWords(input, limit) {
+    const words = input.split(" ");
+    return words.slice(0, limit).join(" ");
+  }
+  const limitedUserInput = getLimitedWords(userInput, 5);
+
   const handleGeneratePPT = async () => {
     setLoading(true);
     try {
@@ -207,7 +262,7 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT, showGenerateDoc, showGe
       // Create a temporary link element to trigger the download
       const a = document.createElement("a");
       a.href = downloadLink;
-      a.download = `${userInput}_presentation.pptx`; // Set the file name
+      a.download = `${limitedUserInput}_presentation.pptx`; // Set the file name
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a); // Remove the temporary link element
@@ -253,7 +308,7 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT, showGenerateDoc, showGe
       // Create a temporary link element to trigger the download
       const a = document.createElement("a");
       a.href = downloadLink;
-      a.download = `${userInput}_document.docx`; // Set the file name
+      a.download = `${limitedUserInput}_document.docx`; // Set the file name
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a); // Remove the temporary link element
@@ -280,55 +335,51 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT, showGenerateDoc, showGe
     setDocLoading(false);
   };
 
-   const handleGenerateCsv = async () => {
-     setCsvLoading(true);
-     try {
-       const formData = new FormData();
-       formData.append("topic", userInput);
-       const response = await axios.post(
-         "http://127.0.0.1:8000/csv",
-         formData,
-         {
-           headers: {
-             Accept: "application/json",
-           },
-           responseType: "blob",
-         }
-       );
+  const handleGenerateCsv = async () => {
+    setCsvLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("topic", userInput);
+      const response = await axios.post("http://127.0.0.1:8000/csv", formData, {
+        headers: {
+          Accept: "application/json",
+        },
+        responseType: "blob",
+      });
 
-       // Create a blob URL for the response data
-       const blob = new Blob([response.data]);
-       const downloadLink = URL.createObjectURL(blob);
+      // Create a blob URL for the response data
+      const blob = new Blob([response.data]);
+      const downloadLink = URL.createObjectURL(blob);
 
-       // Create a temporary link element to trigger the download
-       const a = document.createElement("a");
-       a.href = downloadLink;
-       a.download = `${userInput}.csv`; // Set the file name
-       document.body.appendChild(a);
-       a.click();
-       document.body.removeChild(a); // Remove the temporary link element
+      // Create a temporary link element to trigger the download
+      const a = document.createElement("a");
+      a.href = downloadLink;
+      a.download = `${limitedUserInput}.csv`; // Set the file name
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a); // Remove the temporary link element
 
-       //const downloadLink = encodeURIComponent(response.data.file_path);
-       setChatHistory((prevChatHistory) => [
-         ...prevChatHistory,
-         { role: "user", content: userInput },
-         {
-           role: "assistant",
-           content: (
-             <div>
-               <p>{userInput} CSV file generated!</p>
-             </div>
-           ),
-         },
-       ]);
-       setPresentationPath(response.data.file_path);
-       setUserInput("");
-       resetTranscript(null);
-     } catch (error) {
-       console.error("Error generating CSV file:", error);
-     }
-     setLoading(false);
-   };
+      //const downloadLink = encodeURIComponent(response.data.file_path);
+      setChatHistory((prevChatHistory) => [
+        ...prevChatHistory,
+        { role: "user", content: userInput },
+        {
+          role: "assistant",
+          content: (
+            <div>
+              <p>{userInput} CSV file generated!</p>
+            </div>
+          ),
+        },
+      ]);
+      setPresentationPath(response.data.file_path);
+      setUserInput("");
+      resetTranscript(null);
+    } catch (error) {
+      console.error("Error generating CSV file:", error);
+    }
+    setCsvLoading(false);
+  };
 
   const sendMessage = async () => {
     console.log(gemini);
@@ -427,6 +478,24 @@ const Main = ({ speakerEnabled, gemini, showGeneratePPT, showGenerateDoc, showGe
             )}
           </span>
         </a>
+        <div className="search-bar">
+          {/* <div>
+            <i class="bi bi-search"></i>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={handleSearch}
+            />
+          </div> */}
+
+          {/* <select value={searchFilter} onChange={handleFilterChange}>
+            <option value="all">All</option>
+            <option value="messages">Messages</option>
+            <option value="documents">Documents</option>
+          </select>
+          <input type="date" value={searchDate} onChange={handleDateChange} /> */}
+        </div>
         <button
           className="refreshBtn"
           onClick={handleRefresh}
